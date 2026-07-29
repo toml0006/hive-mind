@@ -1,0 +1,4 @@
+# Packaged fallback. Configure a real map with HIVE_MIND_REPO_MAP or
+# ~/.config/hive-mind/repos.yaml.
+practice_group: practice
+repos: {}

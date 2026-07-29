@@ -1,0 +1,14 @@
+.remember/
+__pycache__/
+.venv/
+.uv-cache/
+*.pyc
+.env
+.env.local
+repos.local.yaml
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+.private/

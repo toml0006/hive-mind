@@ -1,0 +1,28 @@
+services:
+  neo4j:
+    image: neo4j:2026.06.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    environment:
+      NEO4J_AUTH: "${HIVE_MIND_NEO4J_USER:-neo4j}/${HIVE_MIND_NEO4J_PASSWORD:-hive-mind-local-password}"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          cypher-shell
+          -u "${HIVE_MIND_NEO4J_USER:-neo4j}"
+          -p "${HIVE_MIND_NEO4J_PASSWORD:-hive-mind-local-password}"
+          "RETURN 1" >/dev/null 2>&1
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+
+volumes:
+  neo4j-data:
+  neo4j-logs:

@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python unit and package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+      - name: Run fast tests
+        run: uv run pytest -m "not integration and not slow"
+      - name: Build distributions
+        run: uv build
+
+  integration:
+    name: Neo4j integration
+    runs-on: ubuntu-latest
+    services:
+      neo4j:
+        image: neo4j:2026.06.0
+        env:
+          NEO4J_AUTH: neo4j/hive-mind-local-password
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p hive-mind-local-password 'RETURN 1'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      HIVE_MIND_NEO4J_URI: bolt://localhost:7687
+      HIVE_MIND_NEO4J_USER: neo4j
+      HIVE_MIND_NEO4J_PASSWORD: hive-mind-local-password
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+      - name: Run Neo4j integration tests
+        run: uv run pytest -m "integration and not slow"
+
+  web:
+    name: Web lint, test, and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high

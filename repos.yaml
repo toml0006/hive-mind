@@ -1,0 +1,15 @@
+# Public starter configuration.
+#
+# Map each repository directory name to the project or organization group whose
+# decisions it may access. Copy this file to repos.local.yaml for private
+# mappings; that file is ignored by Git.
+#
+# Unmapped repositories can access practice-scoped decisions only. Hive Mind
+# never guesses a project mapping because a wrong guess could leak memory
+# between projects.
+
+practice_group: practice
+
+repos:
+  checkout-api: acme
+  checkout-infrastructure: acme
