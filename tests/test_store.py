@@ -10,7 +10,7 @@ NOW = "2026-07-24T12:00:00Z"
 
 @pytest.fixture
 def store():
-    s = Store.from_env()
+    s = Store.from_env(timeout=10.0)
     s.ensure_schema()
     s.delete_group(TEST_GROUP)
     yield s
